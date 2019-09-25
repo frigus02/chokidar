@@ -485,7 +485,7 @@ const runTests = function(baseopts) {
       const spy = await aspy(watcher, 'change');
       await write(testPath, Date.now());
       await waitFor([spy]);
-      spy.should.have.always.been.calledWith(testPath);
+      spy.should.have.always.been.calledWith(upath.toUnix(testPath));
     });
     it('should detect unlinks', async () => {
       const testPath = getFixturePath('unlink.txt');
@@ -902,7 +902,7 @@ const runTests = function(baseopts) {
       let watcher = chokidar_watch(watchPath, options);
       const spy = await aspy(watcher, 'all');
 
-      spy.should.have.been.calledWith('add', filePath);
+      spy.should.have.been.calledWith('add', upath.toUnix(filePath));
       spy.should.not.have.been.calledWith('addDir', matchingDir);
       spy.should.not.have.been.calledWith('add', matchingFile);
       spy.should.not.have.been.calledWith('add', matchingFile2);
@@ -910,7 +910,7 @@ const runTests = function(baseopts) {
       await write(filePath, Date.now());
 
       await waitFor([spy.withArgs('change', filePath)]);
-      spy.should.have.been.calledWith('change', filePath);
+      spy.should.have.been.calledWith('change', upath.toUnix(filePath));
     });
     it('should not prematurely filter dirs against complex globstar patterns', async () => {
       const deepFile = getFixturePath('subdir/subsub/subsubsub/a.txt');
@@ -1152,12 +1152,12 @@ const runTests = function(baseopts) {
       fs.mkdirSync(testDir);
       let watcher = chokidar_watch([testDir, testPath], options);
       const spy = await aspy(watcher, 'all');
-      spy.should.have.been.calledWith('add', testPath);
-      spy.should.have.been.calledWith('addDir', testDir);
+      spy.should.have.been.calledWith('add', upath.toUnix(testPath));
+      spy.should.have.been.calledWith('addDir', upath.toUnix(testDir));
       spy.should.not.have.been.calledWith('add', getFixturePath('unlink.txt'));
       await write(testPath, Date.now());
       await waitFor([spy.withArgs('change')]);
-      spy.should.have.been.calledWith('change', testPath);
+      spy.should.have.been.calledWith('change', upath.toUnix(testPath));
     });
     it('should accommodate nested arrays in input', async () => {
       const testPath = getFixturePath('change.txt');
@@ -1165,12 +1165,12 @@ const runTests = function(baseopts) {
       await fs_mkdir(testDir);
       let watcher = chokidar_watch([[testDir], [testPath]], options);
       const spy = await aspy(watcher, 'all');
-      spy.should.have.been.calledWith('add', testPath);
-      spy.should.have.been.calledWith('addDir', testDir);
+      spy.should.have.been.calledWith('add', upath.toUnix(testPath));
+      spy.should.have.been.calledWith('addDir', upath.toUnix(testDir));
       spy.should.not.have.been.calledWith('add', getFixturePath('unlink.txt'));
       await write(testPath, Date.now());
       await waitFor([spy.withArgs('change')]);
-      spy.should.have.been.calledWith('change', testPath);
+      spy.should.have.been.calledWith('change', upath.toUnix(testPath));
     });
     it('should throw if provided any non-string paths', () => {
       expect(chokidar_watch.bind(null, [[currentDir], /notastring/]))
@@ -1190,14 +1190,14 @@ const runTests = function(baseopts) {
           let watcher = chokidar_watch(currentDir, options);
           const spy = await aspy(watcher, 'addDir');
           spy.should.have.been.calledOnce;
-          spy.should.have.been.calledWith(currentDir);
+          spy.should.have.been.calledWith(upath.toUnix(currentDir));
         });
         it('should emit `addDir` events for preexisting dirs', async () => {
           await fs_mkdir(getFixturePath('subdir'), PERM_ARR);
           await fs_mkdir(getFixturePath('subdir/subsub'), PERM_ARR);
           let watcher = chokidar_watch(currentDir, options);
           const spy = await aspy(watcher, 'addDir');
-          spy.should.have.been.calledWith(currentDir);
+          spy.should.have.been.calledWith(upath.toUnix(currentDir));
           spy.should.have.been.calledWith(getFixturePath('subdir'));
           spy.should.have.been.calledWith(getFixturePath('subdir/subsub'));
           spy.should.have.been.calledThrice;
@@ -1326,7 +1326,7 @@ const runTests = function(baseopts) {
         const spy = await aspy(watcher, 'all');
         await write(getFixturePath('subdir/add.txt'), Date.now());
         await waitFor([[spy, 4]]);
-        spy.should.have.been.calledWith('addDir', currentDir);
+        spy.should.have.been.calledWith('addDir', upath.toUnix(currentDir));
         spy.should.have.been.calledWith('addDir', getFixturePath('subdir'));
         spy.should.have.been.calledWith('add', getFixturePath('change.txt'));
         spy.should.have.been.calledWith('add', getFixturePath('unlink.txt'));
@@ -1382,7 +1382,7 @@ const runTests = function(baseopts) {
         const spy = await aspy(chokidar_watch(), 'all');
         const addSpy = spy.withArgs('addDir');
         const unlinkSpy = spy.withArgs('unlinkDir');
-        spy.should.have.been.calledWith('addDir', currentDir);
+        spy.should.have.been.calledWith('addDir', upath.toUnix(currentDir));
         spy.should.have.been.calledWith('addDir', getFixturePath('subdir'));
         await fs_mkdir(subdir2, PERM_ARR);
         await waitFor([[addSpy, 3]]);
@@ -1836,7 +1836,7 @@ const runTests = function(baseopts) {
       await waitFor([spy]);
 
       await delay(300);
-      spy.should.have.been.calledWith('change', getFixturePath('change.txt'));
+      spy.should.have.been.calledWith('change', upath.toUnix(getFixturePath('change.txt')));
       spy.should.not.have.been.calledWith('add');
       if (!macosFswatch) spy.should.have.been.calledOnce;
     });
@@ -1878,7 +1878,7 @@ const runTests = function(baseopts) {
       await waitFor([spy]);
 
       await delay(300);
-      spy.should.have.been.calledWith('change', changeFile);
+      spy.should.have.been.calledWith('change', upath.toUnix(changeFile));
       spy.should.not.have.been.calledWith('add');
       if (!macosFswatch) spy.should.have.been.calledOnce;
     });
@@ -1897,7 +1897,7 @@ const runTests = function(baseopts) {
       await delay();
       await write(getFixturePath('change.txt'), Date.now());
       await waitFor([spy]);
-      spy.should.have.been.calledWith('change', getFixturePath('change.txt'));
+      spy.should.have.been.calledWith('change', upath.toUnix(getFixturePath('change.txt')));
       if (!macosFswatch) spy.should.have.been.calledOnce;
     });
     it('should unwatch paths that are relative to options.cwd', async () => {

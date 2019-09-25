@@ -421,6 +421,7 @@ add(paths_, _origAdd, _internal) {
 unwatch(paths) {
   if (this.closed) return this;
   paths = flatten(arrify(paths));
+  paths = paths.map(path => normalizePathToUnix(path));
   const cwd = this.options.cwd;
 
   paths.forEach((path) => {
